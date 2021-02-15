@@ -9,4 +9,17 @@ module.exports = {
       enableInSFC: false,
     },
   },
+
+  css: {
+    loaderOptions: {
+      scss: {
+        sassOptions: {
+          indentedSyntax: false,
+        },
+        additionalData: `
+          @import "@/scss/_variables.scss";
+        `,
+      },
+    },
+  },
 }

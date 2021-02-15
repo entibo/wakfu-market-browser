@@ -1,5 +1,7 @@
 import items from "../../static/items.json"
 
+(window as any).allItems = items
+
 export function getItemInfo(itemId: number) {
   if (itemId in items) {
     return items[(itemId as unknown) as keyof typeof items]

@@ -1,3 +1,9 @@
 {
-  "hello": "bonjour i18n !!"
+  "hello": "bonjour i18n !!",
+  "level": "Niveau",
+  "rarity": "Rarité",
+  "name": "Nom",
+  "type": "Type",
+  "results": "Résultats",
+  "all": "Toutes"
 }

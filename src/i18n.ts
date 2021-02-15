@@ -4,6 +4,7 @@ import VueI18n, { LocaleMessageObject } from "vue-i18n"
 Vue.use(VueI18n)
 
 import itemNamesFr from "@/../static/itemNames-fr.json"
+(window as any).itemNamesFr = itemNamesFr
 import langFr from "@/lang/fr.json"
 
 async function importLanguageMessages(locale: string): Promise<LocaleMessageObject> {
