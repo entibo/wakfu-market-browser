@@ -4,14 +4,17 @@ import VueI18n, { LocaleMessageObject } from "vue-i18n"
 Vue.use(VueI18n)
 
 import itemNamesFr from "@/../static/itemNames-fr.json"
+import categoryNamesFr from "@/../static/categoryNames-fr.json"
 (window as any).itemNamesFr = itemNamesFr
 import langFr from "@/lang/fr.json"
 
 async function importLanguageMessages(locale: string): Promise<LocaleMessageObject> {
   const baseMessages = (await import(`@/lang/${locale}.json`)).default
   const itemNames = (await import(`@/../static/itemNames-${locale}.json`)).default
+  const categoryNames = (await import(`@/../static/categoryNames-${locale}.json`)).default
   return Object.assign(baseMessages, {
     itemNames,
+    categoryNames,
   })
 }
 
@@ -21,6 +24,7 @@ export const i18n = new VueI18n({
   messages: {
     fr: Object.assign(langFr, {
       itemNames: itemNamesFr,
+      categoryNames: categoryNamesFr,
     }),
   },
 })

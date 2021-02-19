@@ -32,12 +32,7 @@
 
     <v-main>
       <v-container fluid>
-        <v-row>
-          <v-col>
-            <item-search test="foo" />
-          </v-col>
-          <v-col> </v-col>
-        </v-row>
+        <item-search />
       </v-container>
     </v-main>
   </v-app>
@@ -53,7 +48,7 @@ export default {
     ItemSearch,
   },
   data: () => ({
-    links: ["Foo", "Bar", "Baz"],
+    links: ["Foo", "Bar", "Baz"]
   }),
   methods: {
     toggleDarkMode(value: boolean) {

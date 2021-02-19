@@ -6,7 +6,7 @@ Vue.use(Vuetify)
 
 export default new Vuetify({
   theme: {
-    dark: true,
+    dark: false,
     themes: {
       dark: {
         "rarity-0": colors.grey.lighten1,

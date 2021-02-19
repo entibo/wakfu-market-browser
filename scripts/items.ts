@@ -72,6 +72,13 @@ async function start() {
       path.join(JSON_PATH, `itemNames-${locale}.json`),
       JSON.stringify(itemNames, null, 2),
     )
+    const encyclopediaCategoryNames = await axios
+      .get(`https://entibo.github.io/wakfu-encyclopedia-scraper/json/categoryNames-${locale}.json`)
+      .then(({ data }) => data)
+    await fs.writeFile(
+      path.join(JSON_PATH, `categoryNames-${locale}.json`),
+      JSON.stringify(encyclopediaCategoryNames, null, 2),
+    )
   }
 }
 start()
