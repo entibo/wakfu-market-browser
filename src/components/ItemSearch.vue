@@ -18,11 +18,11 @@
       <v-card outlined>
         <v-app-bar flat dense>
           <v-tabs v-model="tab" :icons-and-text="false">
-            <v-tab key="favorites">
+            <v-tab>
               <v-icon class="mr-1">mdi-star</v-icon>
               Favoris
             </v-tab>
-            <v-tab key="all">
+            <v-tab>
               <v-icon class="mr-1">mdi-database</v-icon>
               Encyclopédie
             </v-tab>
@@ -62,36 +62,38 @@
           </v-col>
         </v-row>
 
-        <v-row class="my-4">
-          <v-divider />
-        </v-row>
-
-        <v-container>
+        <v-container class="mt-2">
           <v-row>
-            <v-subheader>{{ $t("results") }}: {{ sortedItems.length }}</v-subheader>
+            <v-subheader>
+              {{ $t("results") }}: <strong class="pl-1">{{ sortedItems.length }}</strong>
+            </v-subheader>
             <v-spacer />
-            <v-icon class="mr-3">mdi-sort-variant</v-icon>
-            <v-chip-group>
-              <v-chip
-                v-for="value in ['name', 'type', 'rarity', 'level']"
-                :key="value"
-                :input-value="sortBy.value === value"
-                @click="sortChipClick(value)"
-              >
-                {{ $t(value) }}
-                <v-slide-x-transition hide-on-leave>
-                  <v-icon v-if="sortBy.value === value && sortBy.descending">mdi-arrow-down</v-icon>
-                  <v-icon v-else-if="sortBy.value === value && !sortBy.descending"
-                    >mdi-arrow-up</v-icon
-                  >
-                </v-slide-x-transition>
-              </v-chip>
-            </v-chip-group>
+            <div class="d-flex flex-nowrap pl-4">
+              <v-icon class="mr-3">mdi-sort-variant</v-icon>
+              <v-chip-group>
+                <v-chip
+                  v-for="value in ['name', 'type', 'rarity', 'level']"
+                  :key="value"
+                  :input-value="sortBy.value === value"
+                  @click="sortChipClick(value)"
+                >
+                  {{ $t(value) }}
+                  <v-slide-x-transition hide-on-leave>
+                    <v-icon v-if="sortBy.value === value && sortBy.descending"
+                      >mdi-arrow-down</v-icon
+                    >
+                    <v-icon v-else-if="sortBy.value === value && !sortBy.descending"
+                      >mdi-arrow-up</v-icon
+                    >
+                  </v-slide-x-transition>
+                </v-chip>
+              </v-chip-group>
+            </div>
           </v-row>
         </v-container>
 
         <v-list>
-          <v-list-item-group v-model="selectedItems" multiple>
+          <v-list-item-group v-model="selectedItem">
             <v-virtual-scroll bench="10" :items="sortedItems" height="400" item-height="59">
               <template v-slot:default="{ item }">
                 <v-list-item
@@ -107,23 +109,36 @@
                     ></v-img>
                   </v-list-item-avatar>
 
+                  <v-list-item-avatar size class="mr-1">
+                    <img
+                      v-if="item.rarity > 0 && item.rarity < 10"
+                      :src="require('@/assets/rarity/' + item.rarity + '.png')"
+                    />
+                  </v-list-item-avatar>
+
                   <v-list-item-content>
                     <v-list-item-title
-                      class="d-flex align-center"
+                      class="d-inline-block text-truncate"
                       :class="`rarity-${item.rarity}--text`"
                     >
-                      <v-list-item-avatar size class="mr-2">
-                        <img
-                          v-if="item.rarity > 0 && item.rarity < 10"
-                          :src="require('@/assets/rarity/' + item.rarity + '.png')"
-                        />
-                      </v-list-item-avatar>
                       {{ item.name }}
                     </v-list-item-title>
                   </v-list-item-content>
 
-                  <v-list-item-action>
-                    <v-icon color="grey lighten-1">mdi-arrow-right</v-icon>
+                  <div class="d-flex align-center">
+                    <div class="text-caption pt-1 mr-2">
+                      {{ $t("level-abbreviated") }} <strong>{{ item.level }}</strong>
+                    </div>
+                    <img style="opacity: 0.9" :src="require('@/assets/item-category/' + categoryIcon(item.type) + '.png')" />
+                  </div>
+
+                  <v-list-item-action @click.stop @mousedown.stop>
+                    <v-btn v-if="isFavorite(item.id)" icon @click="deleteFavorite(item.id)">
+                      <v-icon color="amber">mdi-star</v-icon>
+                    </v-btn>
+                    <v-btn v-else icon @click="addFavorite(item.id)">
+                      <v-icon color="grey">mdi-star-outline</v-icon>
+                    </v-btn>
                   </v-list-item-action>
                 </v-list-item>
                 <v-divider />
@@ -133,7 +148,7 @@
         </v-list>
       </v-card>
     </v-col>
-    <v-col><market :items="selectedItems.length ? selectedItems : sortedItems"></market></v-col>
+    <v-col><market :items="selectedItem ? [selectedItem] : sortedItems"></market></v-col>
   </v-row>
 </template>
 
@@ -145,6 +160,7 @@ import latinize from "latinize"
 import Vue from "vue"
 import Market from "./Market.vue"
 import ItemSearchFilters, { defaultItemSearchFilters } from "./ItemSearchFilters.vue"
+import { mapGetters, mapMutations } from "vuex"
 
 export interface ItemInfoWithName extends ItemInfo {
   name: string
@@ -166,18 +182,21 @@ export default Vue.extend({
   props: {},
   data: function() {
     return {
-      tab: "all" as "all" | "favorites",
+      tab: 1,
       searchInput: "",
       itemSearchFilters: defaultItemSearchFilters(),
-      showFilters: true,
+      showFilters: false,
       sortBy: {
         value: null as null | string,
         descending: true,
       },
-      selectedItems: [],
+      selectedItem: null,
     }
   },
   computed: {
+    ...mapGetters("favorites", {
+      isFavorite: "has",
+    }),
     isDefaultFilters(): boolean {
       return (
         this.itemSearchFilters.level[0] === 0 &&
@@ -186,12 +205,25 @@ export default Vue.extend({
         this.itemSearchFilters.rarities.length === 0
       )
     },
+    allItems(): ItemInfoWithName[] {
+      const all = Object.entries(this.$i18n.messages[this.$i18n.locale].itemNames).map(
+        ([id, name]) => ({
+          name: name as string,
+          nameNormalized: normalize(name),
+          ...itemInfo.get(parseInt(id))!,
+        }),
+      )
+      const list = this.tab === 1 ? all : all.filter((x) => this.isFavorite(x.id))
+      console.log(list)
+      return list
+    },
     localizedItems(): ItemInfoWithName[] {
-      return Object.entries(this.$i18n.messages[this.$i18n.locale].itemNames).map(([id, name]) => ({
+      /* return Object.entries(this.$i18n.messages[this.$i18n.locale].itemNames).map(([id, name]) => ({
         name: name as string,
         nameNormalized: normalize(name),
         ...itemInfo.get(parseInt(id))!,
-      }))
+      })) */
+      return this.allItems
     },
     filteredItems(): ItemInfoWithName[] {
       return this.localizedItems.filter((item) => {
@@ -252,13 +284,17 @@ export default Vue.extend({
   },
   watch: {
     searchResultItems() {
-      this.selectedItems = []
+      this.selectedItem = null
     },
     sortedItems() {
       ;(window as any).sortedItems = this.sortedItems
     },
   },
   methods: {
+    ...mapMutations("favorites", {
+      addFavorite: "add",
+      deleteFavorite: "delete",
+    }),
     categoryIcon(category: number) {
       return parentCategory[category] ?? category
     },

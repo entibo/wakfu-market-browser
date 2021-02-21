@@ -47,19 +47,23 @@
         </v-slide-x-transition>
       </div>
     </v-row>
-    <v-row align="center">
+    <v-row align="center" class="flex-nowrap">
       <v-subheader v-text="$t('rarity')" />
-      <v-chip-group v-model="itemSearchFilters.rarities" multiple>
-        <v-chip
-          v-for="rarity in [1, 2, 3, 4, 5, 6, 7]"
-          :key="rarity"
-          :value="rarity"
-          :active-class="`rarity-${rarity}`"
-          outlined
-        >
-          <img :src="require('@/assets/rarity/' + rarity + '.png')" />
-        </v-chip>
-      </v-chip-group>
+      <v-list>
+        <v-list-item-group v-model="itemSearchFilters.rarities" multiple class="d-flex">
+          <v-list-item
+            v-for="rarity in [1, 2, 3, 4, 5, 6, 7]"
+            :key="rarity"
+            :value="rarity"
+            color="primary"
+            dense
+          >
+            <v-list-item-content>
+              <img :src="require('@/assets/rarity/' + rarity + '.png')" />
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
       <!-- <v-chip
                 
                 color="primary"

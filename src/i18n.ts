@@ -5,7 +5,7 @@ Vue.use(VueI18n)
 
 import itemNamesFr from "@/../static/itemNames-fr.json"
 import categoryNamesFr from "@/../static/categoryNames-fr.json"
-(window as any).itemNamesFr = itemNamesFr
+;(window as any).itemNamesFr = itemNamesFr
 import langFr from "@/lang/fr.json"
 
 async function importLanguageMessages(locale: string): Promise<LocaleMessageObject> {

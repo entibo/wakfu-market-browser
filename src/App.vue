@@ -48,7 +48,7 @@ export default {
     ItemSearch,
   },
   data: () => ({
-    links: ["Foo", "Bar", "Baz"]
+    links: ["Foo", "Bar", "Baz"],
   }),
   methods: {
     toggleDarkMode(value: boolean) {

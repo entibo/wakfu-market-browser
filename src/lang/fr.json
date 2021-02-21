@@ -1,6 +1,7 @@
 {
   "hello": "bonjour i18n !!",
   "level": "Niveau",
+  "level-abbreviated": "Niv.",
   "rarity": "Rarité",
   "name": "Nom",
   "type": "Type",

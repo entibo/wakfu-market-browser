@@ -1,7 +1,37 @@
 <template>
-  <v-container class="elevation-1">
-    <v-row>Graphs and stuff</v-row>
-    <v-row>
+  <v-card outlined>
+    <v-app-bar flat dense>
+      <v-tabs v-model="tab" :icons-and-text="false">
+        <v-tab>
+          <v-icon class="mr-1">mdi-home</v-icon>
+          Aperçu
+        </v-tab>
+        <v-tab>
+          <v-icon class="mr-1">mdi-view-list</v-icon>
+          Liste
+        </v-tab>
+      </v-tabs>
+      <v-spacer />
+      <v-btn
+        icon
+        :input-value="showFilters"
+        tile
+        :color="isDefaultFilters ? '' : 'primary'"
+        class="mr-n4"
+        @click="showFilters = !showFilters"
+      >
+        <v-icon>mdi-filter</v-icon>
+      </v-btn>
+    </v-app-bar>
+
+    <v-expand-transition>
+      <div v-if="showFilters"></div>
+    </v-expand-transition>
+
+    <market-overview v-if="tab === 0" />
+    <market-results v-else-if="tab === 1" />
+
+    <!-- <v-row align="center">
       <v-list>
         <v-list-item v-for="(f, index) in foo" :key="index">
           <v-list-item-avatar size="42" rounded>
@@ -15,15 +45,21 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-    </v-row>
-  </v-container>
+    </v-row> -->
+  </v-card>
 </template>
 
 <script lang="ts">
 import Vue, { PropType } from "vue"
 import * as csv from "@/csv"
 import { ItemInfoWithName } from "./ItemSearch.vue"
+import MarketOverview from "./MarketOverview.vue"
+import MarketResults from "./MarketResults.vue"
 export default Vue.extend({
+  components: {
+    MarketOverview,
+    MarketResults,
+  },
   props: {
     items: {
       type: Array as PropType<ItemInfoWithName[]>,
@@ -31,11 +67,16 @@ export default Vue.extend({
     },
   },
   data: () => ({
+    tab: 0,
+    showFilters: false,
     loading: true,
     error: false,
     marketEntriesByItemID: {} as Record<any, any>,
   }),
   computed: {
+    isDefaultFilters(): boolean {
+      return true
+    },
     foo(): any[] {
       console.log("computing foo")
       const result = []
@@ -47,7 +88,7 @@ export default Vue.extend({
         }
       }
       console.log("computed foo; length=", result.length)
-      return result.slice(0,10)
+      return result.slice(0, 10)
     },
   },
   created() {
