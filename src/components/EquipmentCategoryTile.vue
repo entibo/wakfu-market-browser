@@ -1,7 +1,14 @@
 <template>
   <v-tooltip left right>
     <template v-slot:activator="{ on, attrs }">
-      <v-list-item v-bind="attrs" :value="category" color="primary" v-on="on" class="px-0 justify-center" dense>
+      <v-list-item
+        v-bind="attrs"
+        :value="category"
+        color="primary"
+        class="px-0 justify-center"
+        dense
+        v-on="on"
+      >
         <img :src="require('@/assets/item-category/' + category + '.png')" />
       </v-list-item>
     </template>

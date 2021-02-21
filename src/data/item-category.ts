@@ -12,11 +12,18 @@ export const parentCategory: Partial<Record<number, number>> = {
   223: 519,
   253: 519,
   254: 518,
-  511: -1,
-  809: -1,
-  811: -1,
-  812: -1,
-  822: -1,
+
+  511: -2,
+  809: -2,
+  811: 683,
+  812: 719,
+  822: -2,
+
+  281: 761, // Récoltes mineur
+  306: 226, // Récoltes forestier
+  308: 567, // Pecheur
+  309: 237, // Paysan
+  "-1": 604,
 }
 
 export const inventory = {
@@ -38,4 +45,3 @@ export const inventory = {
   costume: 647,
 }
 export const allEquipments = Object.values(inventory)
-
