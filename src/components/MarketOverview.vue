@@ -2,6 +2,27 @@
   <div>
     <v-container>
       <apex-chart type="line" height="350" :series="series" :options="chartOptions" />
+
+      <v-simple-table height="300" style="max-width: 440px">
+        <template v-slot:default>
+          <thead>
+            <tr>
+              <th class="text-left">
+                Pseudo
+              </th>
+              <th class="text-left">
+                Offres
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="{ username, entryCount } in top" :key="username">
+              <td>{{ username }}</td>
+              <td>{{ entryCount }}</td>
+            </tr>
+          </tbody>
+        </template>
+      </v-simple-table>
     </v-container>
   </div>
 </template>
@@ -10,7 +31,8 @@
 import Vue from "vue"
 import { ApexOptions } from "apexcharts"
 import VueApexCharts from "vue-apexcharts"
-import * as csv from "@/csv"
+/* import * as api from "@/api" */
+import * as marketData from "@/store/marketData"
 
 export default Vue.extend({
   components: {
@@ -18,10 +40,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      series: [] as ApexAxisChartSeries,
       chartOptions: {
         chart: {
-          
           type: "line",
           dropShadow: {
             enabled: true,
@@ -63,14 +83,19 @@ export default Vue.extend({
             text: "Month",
           }, */
         },
-        yaxis: {
-          title: {
-            text: "Temperature",
+        yaxis: [
+          {
+            show: true,
+            min: 42000,
+            max: 46000,
           },
-          show: false,
-          /* min: 5,
-          max: 40, */
-        },
+          {
+            opposite: true,
+            show: true,
+            min: 4200,
+            max: 4600,
+          },
+        ],
         /* legend: {
           position: "top",
           horizontalAlign: "right",
@@ -81,26 +106,21 @@ export default Vue.extend({
       } as ApexOptions,
     }
   },
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    async fetchData() {
-      const scans = await fetch("https://entibo.github.io/wakfu-market-data/pandora/scans.csv")
-        .then((resp) => resp.text())
-        .then(csv.decode)
-      console.log("Data fetched!")
-      this.series = [
+  computed: {
+    ...marketData.getters,
+    series(): ApexAxisChartSeries {
+      return [
         {
           name: "Offres",
-          data: scans.map((row) => ({x: row.time, y:row.entryCount})),
+          data: this.scans.map((row) => ({ x: row.time, y: row.entryCount })),
         },
-        /* {
+        {
           name: "Personnages",
-          data: scans.map((row) => ({x: row.time, y:row.playerCount})),
-        }, */
+          data: this.scans.map((row) => ({ x: row.time, y: row.playerCount })),
+        },
       ]
     },
   },
+  methods: {},
 })
 </script>

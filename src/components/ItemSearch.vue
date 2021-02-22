@@ -102,44 +102,7 @@
                   :class="`raerity-${item.rarity}`"
                   color="primary"
                 >
-                  <v-list-item-avatar size="42" rounded>
-                    <v-img
-                      class="item-image"
-                      :src="`https://vertylo.github.io/wakassets/items/${item.gfxId}.png`"
-                    ></v-img>
-                  </v-list-item-avatar>
-
-                  <v-list-item-avatar size class="mr-1">
-                    <img
-                      v-if="item.rarity > 0 && item.rarity < 10"
-                      :src="require('@/assets/rarity/' + item.rarity + '.png')"
-                    />
-                  </v-list-item-avatar>
-
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="d-inline-block text-truncate"
-                      :class="`rarity-${item.rarity}--text`"
-                    >
-                      {{ item.name }}
-                    </v-list-item-title>
-                  </v-list-item-content>
-
-                  <div class="d-flex align-center">
-                    <div class="text-caption pt-1 mr-2">
-                      {{ $t("level-abbreviated") }} <strong>{{ item.level }}</strong>
-                    </div>
-                    <img style="opacity: 0.9" :src="require('@/assets/item-category/' + categoryIcon(item.type) + '.png')" />
-                  </div>
-
-                  <v-list-item-action @click.stop @mousedown.stop>
-                    <v-btn v-if="isFavorite(item.id)" icon @click="deleteFavorite(item.id)">
-                      <v-icon color="amber">mdi-star</v-icon>
-                    </v-btn>
-                    <v-btn v-else icon @click="addFavorite(item.id)">
-                      <v-icon color="grey">mdi-star-outline</v-icon>
-                    </v-btn>
-                  </v-list-item-action>
+                  <item :item="item" show-favorite />
                 </v-list-item>
                 <v-divider />
               </template>
@@ -159,6 +122,7 @@ import Fuse from "fuse.js"
 import latinize from "latinize"
 import Vue from "vue"
 import Market from "./Market.vue"
+import Item from "./Item.vue"
 import ItemSearchFilters, { defaultItemSearchFilters } from "./ItemSearchFilters.vue"
 import { mapGetters, mapMutations } from "vuex"
 
@@ -166,7 +130,7 @@ export interface ItemInfoWithName extends ItemInfo {
   name: string
   nameNormalized: string
 }
-function normalize(str: string) {
+export function normalize(str: string) {
   str = latinize(str)
   str = str.replace(/[-°/]/g, " ")
   str = str.replace(/[()"'!?’‘.,«»:]/g, "")
@@ -176,6 +140,7 @@ function normalize(str: string) {
 
 export default Vue.extend({
   components: {
+    Item,
     Market,
     ItemSearchFilters,
   },
@@ -291,13 +256,6 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapMutations("favorites", {
-      addFavorite: "add",
-      deleteFavorite: "delete",
-    }),
-    categoryIcon(category: number) {
-      return parentCategory[category] ?? category
-    },
     resetSort() {
       this.sortBy = {
         value: null,

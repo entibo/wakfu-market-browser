@@ -9,5 +9,5 @@ export default new Vuex.Store({
   modules: {
     favorites,
   },
-  plugins: [new VuexPersistence().plugin],
+  plugins: [new VuexPersistence({ modules: ["favorites"] }).plugin],
 })

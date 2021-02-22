@@ -6,5 +6,10 @@
   "name": "Nom",
   "type": "Type",
   "results": "Résultats",
-  "all": "Toutes"
+  "all": "Toutes",
+  "amount": "Quantité",
+  "stack": "Lot",
+  "price": "Prix",
+  "seller": "Vendeur",
+  "timeLeft": "Temps"
 }

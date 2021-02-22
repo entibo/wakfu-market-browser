@@ -29,7 +29,7 @@
     </v-expand-transition>
 
     <market-overview v-if="tab === 0" />
-    <market-results v-else-if="tab === 1" />
+    <market-results v-else-if="tab === 1" :items="items"/>
 
     <!-- <v-row align="center">
       <v-list>
@@ -67,7 +67,7 @@ export default Vue.extend({
     },
   },
   data: () => ({
-    tab: 0,
+    tab: 1,
     showFilters: false,
     loading: true,
     error: false,
