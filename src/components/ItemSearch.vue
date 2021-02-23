@@ -218,6 +218,9 @@ export default Vue.extend({
     searchResultItems(): ItemInfoWithName[] {
       if (this.searchInput === "") {
         return this.filteredItems
+      } else if (this.searchInput.match(/^\d+$/)) {
+        const itemID = parseInt(this.searchInput)
+        return this.allItems.filter((x) => x.id === itemID)
       }
       console.log("searchInput:", this.searchInput)
       const pattern = normalize(this.searchInput)

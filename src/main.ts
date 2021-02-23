@@ -12,6 +12,10 @@ Vue.use(VueApexCharts)
 
 Vue.config.productionTip = false
 
+import dayjs from "dayjs"
+import RelativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(RelativeTime)
+
 new Vue({
   vuetify,
   i18n,
