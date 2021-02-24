@@ -59,7 +59,7 @@
               </div>
               <div class="d-flex align-center">
                 <span class="subtitle-2">{{ $t("price") }}: </span>
-                <span class="body-2 ml-1">{{ formatPrice(spa.price) }}</span>
+                <span class="body-2 ml-1">{{ spa.realPriceWhole }}</span>
                 <img :src="require('@/assets/k.png')" />
               </div>
             </div>
@@ -76,10 +76,8 @@ import { ApexOptions } from "apexcharts"
 import VueApexCharts from "vue-apexcharts"
 /* import * as api from "@/api" */
 import * as marketData from "@/store/marketData"
-import { ItemInfo, itemInfo } from "@/data/items"
+import { ItemInfo, itemInfoMap } from "@/data/items"
 import { ItemInfoWithName } from "./ItemSearch.vue"
-
-import { formatPrice } from "@/components/MarketResults.vue"
 
 export default Vue.extend({
   components: {
@@ -151,7 +149,7 @@ export default Vue.extend({
           offsetX: -5,
         }, */
       } as ApexOptions,
-      spa: null as any,
+      spa: null as ({ name: string; gfxId: number } & marketData.MarketEntry) | null,
     }
   },
   computed: {
@@ -173,15 +171,20 @@ export default Vue.extend({
     this.getRandomPet()
   },
   methods: {
-    formatPrice,
     getRandomPet() {
       const list = this.currentMarketEntries.filter((entry) => entry.petName)
-      const pet = list[(Math.random() * list.length) | 0]
-      if (!pet) return null
-      this.spa = {
-        ...pet,
-        ...itemInfo.get(pet.itemID),
-        name: this.$t("itemNames." + pet.itemID) as string,
+      for (let i = 0; i < 10; i++) {
+        const pet = list[(Math.random() * list.length) | 0]
+        if (!pet) return null
+        const itemInfo = itemInfoMap.get(pet.itemID)
+        const name = this.$t("itemNames." + pet.itemID) as string | undefined
+        if (!itemInfo || !name) continue
+        this.spa = {
+          ...pet,
+          ...itemInfo,
+          name,
+        }
+        break
       }
     },
   },

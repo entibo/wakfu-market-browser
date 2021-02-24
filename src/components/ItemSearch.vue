@@ -111,13 +111,13 @@
         </v-list>
       </v-card>
     </v-col>
-    <v-col><market :items="selectedItem ? [selectedItem] : sortedItems"></market></v-col>
+    <v-col><market :items="marketItems"></market></v-col>
   </v-row>
 </template>
 
 <script lang="ts">
 import { parentCategory } from "@/data/item-category"
-import { itemInfo, ItemInfo } from "@/data/items"
+import { encyclopediaItemList, ItemInfo } from "@/data/items"
 import Fuse from "fuse.js"
 import latinize from "latinize"
 import Vue from "vue"
@@ -145,7 +145,7 @@ export default Vue.extend({
     ItemSearchFilters,
   },
   props: {},
-  data: function() {
+  data: function () {
     return {
       tab: 1,
       searchInput: "",
@@ -155,7 +155,7 @@ export default Vue.extend({
         value: null as null | string,
         descending: true,
       },
-      selectedItem: null,
+      selectedItem: null as ItemInfoWithName | null,
     }
   },
   computed: {
@@ -170,28 +170,28 @@ export default Vue.extend({
         this.itemSearchFilters.rarities.length === 0
       )
     },
-    allItems(): ItemInfoWithName[] {
-      const all = Object.entries(this.$i18n.messages[this.$i18n.locale].itemNames).map(
-        ([id, name]) => ({
-          name: name as string,
-          nameNormalized: normalize(name),
-          ...itemInfo.get(parseInt(id))!,
-        }),
-      )
-      const list = this.tab === 1 ? all : all.filter((x) => this.isFavorite(x.id))
-      console.log(list)
-      return list
+    allItems(): ItemInfo[] {
+      return encyclopediaItemList
     },
     localizedItems(): ItemInfoWithName[] {
-      /* return Object.entries(this.$i18n.messages[this.$i18n.locale].itemNames).map(([id, name]) => ({
-        name: name as string,
-        nameNormalized: normalize(name),
-        ...itemInfo.get(parseInt(id))!,
-      })) */
-      return this.allItems
+      return this.allItems.map((itemInfo) => {
+        const name = this.$t("itemNames." + itemInfo.id) as string
+        return Object.assign(
+          {
+            name,
+            nameNormalized: normalize(name),
+          },
+          itemInfo,
+        )
+      })
+    },
+    tabItems(): ItemInfoWithName[] {
+      return this.tab === 1
+        ? this.localizedItems
+        : this.localizedItems.filter((x) => this.isFavorite(x.id))
     },
     filteredItems(): ItemInfoWithName[] {
-      return this.localizedItems.filter((item) => {
+      return this.tabItems.filter((item) => {
         const categoryOk = this.itemSearchFilters.categories.length
           ? this.itemSearchFilters.categories.includes(item.type)
           : true
@@ -220,7 +220,7 @@ export default Vue.extend({
         return this.filteredItems
       } else if (this.searchInput.match(/^\d+$/)) {
         const itemID = parseInt(this.searchInput)
-        return this.allItems.filter((x) => x.id === itemID)
+        return this.localizedItems.filter((x) => x.id === itemID)
       }
       console.log("searchInput:", this.searchInput)
       const pattern = normalize(this.searchInput)
@@ -248,6 +248,11 @@ export default Vue.extend({
         sortedItems = sortedItems.reverse()
       }
       return sortedItems
+    },
+    marketItems(): ItemInfoWithName[] {
+      if (this.selectedItem) return [this.selectedItem]
+      if (this.sortedItems.length === this.allItems.length) return []
+      return this.sortedItems
     },
   },
   watch: {

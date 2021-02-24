@@ -24,7 +24,7 @@
       </v-col>
     </v-row>
 
-    <v-data-table :items="tableItems" :headers="headers" sort-by="realPrice">
+    <v-data-table :items="tableItems" :headers="headers" soaaart-by="realPrice">
       <template v-slot:item.itemID="{ item }">
         <item :id="item.itemID" :level="item.realLevel" dense />
       </template>
@@ -36,25 +36,25 @@
             <div v-if="item.petName" class="d-flex ml-4 caption">« {{ item.petName }} »</div>
           </div>
         </div>
-        <div v-if="item.subSlot1Type" class="d-flex align-center">
+        <div v-if="item.enchantment" class="d-flex align-center">
           <div class="d-flex">
-            <div v-for="slot in [1, 2, 3, 4]" :key="slot">
-              <div v-if="item['subSlot' + slot + 'Type']" class="mr-1">
+            <div v-for="(slot, index) in item.enchantment.slots" :key="index">
+              <div class="mr-1">
                 <v-badge
-                  :value="item['subSlot' + slot + 'LVL'] > 0"
+                  :value="slot.level > 0"
                   bordered
                   bottom
                   color="primary"
-                  :content="subSlotLevel(item['subSlot' + slot + 'LVL'])"
+                  :content="slot.level"
                   overlap
                   transition=""
                 >
                   <img
                     :src="
                       require('@/assets/shards/shard_' +
-                        ['none', 'red', 'green', 'blue', 'white'][item['subSlot' + slot + 'Type']] +
+                        slot.color +
                         '_' +
-                        (item['subSlot' + slot + 'LVL'] > 0 ? 'full' : 'empty') +
+                        (slot.level > 0 ? 'full' : 'empty') +
                         '.png')
                     "
                     width="25"
@@ -65,24 +65,26 @@
             </div>
           </div>
           <div class="d-flex flex-column">
-            <div v-for="slot in [1, 2]" :key="slot">
-              <div v-if="item['subSub' + slot]" class="d-flex align-center ml-4">
+            <div v-for="(sublimationItemID, index) in item.enchantment.sublimations" :key="index">
+              <div v-if="sublimationItemID > 0" class="d-flex align-center ml-4">
                 <img
-                  :src="`https://vertylo.github.io/wakassets/items/${
-                    itemInfo.get(item['subSub' + slot]).gfxId
-                  }.png`"
+                  :src="
+                    `https://vertylo.github.io/wakassets/items/${
+                      itemInfoMap.get(sublimationItemID).gfxId
+                    }.png`
+                  "
                   width="20"
                   height="20"
                   class="mr-1"
                 />
-                {{ $t("itemNames." + item["subSub" + slot]) }}
+                {{ $t("itemNames." + sublimationItemID) }}
               </div>
             </div>
           </div>
         </div>
       </template>
-      <template v-slot:item.timeLeft="{ item }">
-        {{ item.expirationDateString }}
+      <template v-slot:item.expirationDate="{ item }">
+        {{ dayjs(item.expirationDate).fromNow(true) }}
       </template>
       <template v-slot:item.realAmount="{ item }">
         <div>{{ item.realAmount }}</div>
@@ -110,37 +112,9 @@ import Vue, { PropType } from "vue"
 import { ItemInfoWithName } from "./ItemSearch.vue"
 import Item from "./Item.vue"
 import dayjs from "dayjs"
-import { itemInfo } from "@/data/items"
+import { itemInfoMap } from "@/data/items"
 
 import type { DataTableHeader } from "vuetify"
-
-export function formatPrice(x: number | string) {
-  const [whole, decimals] = x.toString().split(".")
-  const digits = [...whole].reverse()
-  const result = []
-  for (let i = 0; i < digits.length; i++) {
-    result.push(digits[i])
-    if (i < digits.length - 1 && (i + 1) % 3 === 0) result.push(" ")
-  }
-  return result.reverse().join("") + (decimals ? "." + decimals : "")
-}
-
-export function subSlotLevel(x: number) {
-  const table = {
-    0: 0,
-    1: 1,
-    3: 2,
-    7: 3,
-    15: 4,
-    31: 5,
-    63: 6,
-    127: 7,
-    319: 8,
-    895: 9,
-    3199: 10,
-  }
-  return table[x as keyof typeof table] ?? 0
-}
 
 export default Vue.extend({
   components: {
@@ -154,9 +128,10 @@ export default Vue.extend({
   },
   data() {
     return {
-      itemInfo,
+      itemInfoMap,
       simplifyAmount: true,
       sellerSearchInput: "",
+      dayjs,
     }
   },
   computed: {
@@ -179,9 +154,9 @@ export default Vue.extend({
         value: "username",
         align: "center",
       }
-      const timeLeft: DataTableHeader = {
+      const expirationDate: DataTableHeader = {
         text: this.$t("timeLeft") as string,
-        value: "timeLeft",
+        value: "expirationDate",
         align: "center",
         cellClass: ["text-no-wrap"],
       }
@@ -197,54 +172,44 @@ export default Vue.extend({
         cellClass: ["text-no-wrap text-end"],
       }
 
-      return [item, extra, username, timeLeft, amount, price]
+      return [item, extra, username, expirationDate, amount, price]
     },
-    selectedCurrentMarketEntries(): MarketEntry[] {
+    selectedCurrentMarketEntries(): readonly MarketEntry[] {
       console.log("computing selectedCurrentMarketEntries")
-      let list = [] as MarketEntry[]
+      //return this.currentMarketEntries
+      if (!this.items.length) {
+        return this.currentMarketEntries
+      }
+      const list = [] as MarketEntry[]
       for (const { id } of this.items) {
-        const entries = this.currentMarketEntriesById.get(id)
+        const entries = this.currentMarketEntriesById[id]
         if (!entries) continue
-        list = list.concat(entries)
+        //list = list.concat(entries)
+        for (const entry of entries) list.push(entry)
       }
-      return list
+      return Object.freeze(list)
     },
-    sortedEntries(): MarketEntry[] {
-      let entries = this.selectedCurrentMarketEntries
-      if(this.sellerSearchInput !== "") {
-        entries = entries.filter(entry => entry.username.includes(this.sellerSearchInput))
+    activeCurrentMarketEntries(): readonly MarketEntry[] {
+      const now = Date.now()
+      return Object.freeze(this.selectedCurrentMarketEntries.filter((entry) => entry.expirationDate > now))
+    },
+    filteredEntries(): readonly MarketEntry[] {
+      console.log("computing filteredEntries")
+      let entries = this.activeCurrentMarketEntries
+      if (this.sellerSearchInput !== "") {
+        entries = entries.filter((entry) => entry.username.includes(this.sellerSearchInput))
       }
-      return entries
+      return Object.freeze(entries)
     },
-    tableItems(): MarketEntry[] {
-      const entries = this.sortedEntries
-      return entries.map((entry) => {
-        const realLevel = entry.petLVL ?? entry.makaLVL ?? undefined
-        const realStack = [0, 1, 10, 50, 100][entry.stack]
-        const realAmount = entry.amount * realStack
-        const realPrice = entry.price / realStack
-        const [realPriceWhole, _realPriceDecimals] = realPrice.toString().split(".")
-        const durationDays = [0, 7, 14, 28][entry.duration]
-        const durationHours = durationDays * 24 - 1
-        const expirationDate = dayjs(entry.added).add(durationHours, "hours")
-        const expirationDateString = expirationDate.fromNow(true)
-        return {
-          ...entry,
-          realLevel,
-          realStack,
-          realAmount,
-          realPrice,
-          realPriceWhole: formatPrice(realPriceWhole),
-          realPriceDecimals: _realPriceDecimals ? "." + _realPriceDecimals : "",
-          timeLeft: Date.now() - expirationDate.valueOf(),
-          expirationDateString,
-        }
-      })
+    tableItems(): readonly MarketEntry[] {
+      console.log("computing tableItems")
+      const tableItems = this.filteredEntries
+      console.log("tableItems:", tableItems)
+      return Object.freeze(tableItems)
     },
   },
   methods: {
     ...marketData.actions,
-    subSlotLevel,
   },
 })
 </script>

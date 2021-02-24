@@ -8,11 +8,13 @@ export interface ItemInfo {
   type: number
 }
 
-export const itemInfo: Map<number, ItemInfo> = Object.entries(_items).reduce(
-  (m, [id, item]) => (m.set(parseInt(id), { id: parseInt(id), ...item }), m),
-  new Map(),
-)
-;(window as any).allItems = itemInfo
+export const encyclopediaItemList: ItemInfo[] = Object.entries(_items).map(([key, info]) => ({
+  id: parseInt(key),
+  ...info,
+}))
+
+export const itemInfoMap = new Map(encyclopediaItemList.map((itemInfo) => [itemInfo.id, itemInfo]))
+;(window as any).itemInfoMap = itemInfoMap
 
 /* export function getItemInfo(itemID: number) {
   return items.get(itemID)

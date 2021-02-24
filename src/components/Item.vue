@@ -25,19 +25,23 @@
 
     <div class="d-flex align-center">
       <div class="text-caption pt-1 mx-2">
-        {{ $t("level-abbreviated") }} <strong>{{ level !== undefined ? level : info.level }}</strong>
+        {{ $t("level-abbreviated") }}
+        <strong>{{ level !== undefined ? level : info.level }}</strong>
       </div>
       <img style="opacity: 0.9" :src="require('@/assets/item-category/' + categoryIcon + '.png')" />
     </div>
 
-    <v-list-item-action v-if="showFavorite" @click.stop @mousedown.stop>
-      <v-btn v-if="isFavorite(info.id)" icon @click="deleteFavorite(info.id)">
-        <v-icon color="amber">mdi-star</v-icon>
-      </v-btn>
-      <v-btn v-else icon @click="addFavorite(info.id)">
-        <v-icon color="grey">mdi-star-outline</v-icon>
-      </v-btn>
-    </v-list-item-action>
+    <div v-if="showFavorite" class="d-flex">
+      <v-divider vertical class="ml-4"/>
+      <v-list-item-action v-if="showFavorite" @click.stop @mousedown.stop>
+        <v-btn v-if="isFavorite(info.id)" icon @click="deleteFavorite(info.id)">
+          <v-icon color="amber">mdi-star</v-icon>
+        </v-btn>
+        <v-btn v-else icon @click="addFavorite(info.id)">
+          <v-icon color="grey">mdi-star-outline</v-icon>
+        </v-btn>
+      </v-list-item-action>
+    </div>
   </div>
 </template>
 
@@ -46,7 +50,7 @@ import { parentCategory } from "@/data/item-category"
 import { mapGetters, mapMutations } from "vuex"
 import Vue, { PropType } from "vue"
 import { ItemInfoWithName, normalize } from "./ItemSearch.vue"
-import { itemInfo } from "@/data/items"
+import { itemInfoMap } from "@/data/items"
 export default Vue.extend({
   props: {
     item: {
@@ -83,7 +87,7 @@ export default Vue.extend({
       if (!this.id) throw "Need either item or id"
       const name = (this.$i18n.messages[this.$i18n.locale].itemNames as any)[this.id]
       return {
-        ...itemInfo.get(this.id)!,
+        ...itemInfoMap.get(this.id)!,
         name,
         nameNormalized: normalize(name),
       }
@@ -93,7 +97,7 @@ export default Vue.extend({
     },
     style(): string {
       return this.width ? `width: ${this.width}px` : ""
-    }
+    },
   },
   methods: {
     ...mapMutations("favorites", {

@@ -1,4 +1,7 @@
 import * as csv from "@/csv"
+import { marketEntry, MarketEntry } from "./transform"
+
+export type { MarketEntry }
 
 export const fetchCSV = (url: string) =>
   fetch(url)
@@ -23,7 +26,7 @@ export async function fetchTop(): Promise<Top[]> {
   return fetchCSV("https://entibo.github.io/wakfu-market-data/pandora/top.csv")
 }
 
-interface MarketEntry {
+export interface CSVMarketEntry {
   username: string
   added: number
   price: number
@@ -51,15 +54,17 @@ interface MarketEntry {
   petLVL: number
   petHP: number
   petName: string
-  petLastAte: number
   makaLVL: number
 }
 
-export interface CurrentEntry extends MarketEntry {
+export interface CSVMarketEntryWithItemID extends CSVMarketEntry {
   itemID: number
 }
-export async function fetchCurrent(): Promise<CurrentEntry[]> {
-  return fetchCSV("https://entibo.github.io/wakfu-market-data/pandora/current.csv")
+export async function fetchCurrent(): Promise<MarketEntry[]> {
+  const data: CSVMarketEntryWithItemID[] = await fetchCSV(
+    "https://entibo.github.io/wakfu-market-data/pandora/current.csv",
+  )
+  return data.map(marketEntry)
 }
 
 const dateToPage = (date: Date) =>
@@ -69,8 +74,8 @@ const dateRewindMonths = (date: Date, months: number) => {
   return date
 }
 
-abstract class PagedFetcher<T> {
-  data: T[] = []
+abstract class PagedFetcher<A, B = A> {
+  data: B[] = []
   hasMoreData = true
   fetchedPages = new Set<string>()
   indexPromise: Promise<string[]>
@@ -79,15 +84,18 @@ abstract class PagedFetcher<T> {
       list.map((o) => o.filename).reverse(),
     )
   }
-  async fetch(): Promise<{ data: T[]; hasMoreData: boolean }> {
+  protected transform(obj: A): B {
+    return (obj as unknown) as B
+  }
+  async fetch(): Promise<{ data: B[]; hasMoreData: boolean }> {
     try {
       const index = await this.indexPromise
       const date = new Date()
       const pageEnd = dateToPage(dateRewindMonths(date, this.months))
       for (const [i, page] of index.entries()) {
         if (this.fetchedPages.has(page)) continue
-        const data = (await fetchCSV(this.dir + page + ".csv")) as T[]
-        this.data = this.data.concat(data)
+        const newData = (await fetchCSV(this.dir + page + ".csv")) as A[]
+        this.data.push(...newData.map(this.transform))
         if (page === pageEnd) break
         if (i === index.length - 1) {
           this.hasMoreData = false
@@ -108,14 +116,19 @@ abstract class PagedFetcher<T> {
   }
 }
 
-export interface ArchivedEntry extends MarketEntry {
+export interface CSVMarketEntryWithScanID extends CSVMarketEntry {
   scanID: number
 }
 
-class ArchivedEntryFetcher extends PagedFetcher<ArchivedEntry> {
+class ArchivedEntryFetcher extends PagedFetcher<CSVMarketEntryWithScanID, MarketEntry> {
+  itemID: number
   constructor(itemID: number, months = 0) {
     const url = `https://entibo.github.io/wakfu-market-data/pandora/archive/${itemID}/entries/`
     super(url, months)
+    this.itemID = itemID
+  }
+  transform(obj: CSVMarketEntryWithScanID) {
+    return marketEntry({ ...obj, itemID: this.itemID })
   }
 }
 
