@@ -9,9 +9,12 @@ module.exports = {
     ecmaVersion: 2020,
   },
 
+  ignorePatterns: ["**/*.worker.ts"],
+
   rules: {
     "no-console": "off",
     "no-debugger": "off",
+    "@typescript-eslint/ban-ts-comment": "off"
   },
 
   extends: [

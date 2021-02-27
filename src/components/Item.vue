@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex" :style="style">
+  <div v-if="info" class="d-flex flex" :style="style">
     <v-list-item-avatar :size="dense ? 42 : 42" rounded>
       <v-img
         class="item-image"
@@ -32,7 +32,7 @@
     </div>
 
     <div v-if="showFavorite" class="d-flex">
-      <v-divider vertical class="ml-4"/>
+      <v-divider vertical class="ml-4" />
       <v-list-item-action v-if="showFavorite" @click.stop @mousedown.stop>
         <v-btn v-if="isFavorite(info.id)" icon @click="deleteFavorite(info.id)">
           <v-icon color="amber">mdi-star</v-icon>
@@ -43,24 +43,33 @@
       </v-list-item-action>
     </div>
   </div>
+  <div v-else class="d-flex flex" :style="style">
+    <v-list-item-content>
+      <v-list-item-title
+        class="d-inline-block text-truncate"
+        :class="`${dense ? 'body-2 pt-1' : ''}`"
+      >
+        {{ $t("unknown-item") }} <strong>({{id}})</strong>
+      </v-list-item-title>
+    </v-list-item-content>
+  </div>
 </template>
 
 <script lang="ts">
+import { ItemInfoWithName } from "@/components/ItemSearch.vue"
 import { parentCategory } from "@/data/item-category"
-import { mapGetters, mapMutations } from "vuex"
-import Vue, { PropType } from "vue"
-import { ItemInfoWithName, normalize } from "./ItemSearch.vue"
 import { itemInfoMap } from "@/data/items"
+import Vue from "vue"
+import { mapGetters, mapMutations } from "vuex"
 export default Vue.extend({
   props: {
-    item: {
-      type: Object as PropType<ItemInfoWithName>,
-    },
     id: {
       type: Number,
+      required: true,
     },
     level: {
       type: Number,
+      default: undefined,
     },
     showFavorite: {
       type: Boolean,
@@ -82,17 +91,17 @@ export default Vue.extend({
     ...mapGetters("favorites", {
       isFavorite: "has",
     }),
-    info(): ItemInfoWithName {
-      if (this.item) return this.item
-      if (!this.id) throw "Need either item or id"
-      const name = (this.$i18n.messages[this.$i18n.locale].itemNames as any)[this.id]
+    info(): ItemInfoWithName | null {
+      const info = itemInfoMap.get(this.id)
+      if (!info) return null
+      const name = this.$t("itemNames." + this.id) as string
       return {
-        ...itemInfoMap.get(this.id)!,
+        ...info,
         name,
-        nameNormalized: normalize(name),
       }
     },
     categoryIcon(): number {
+      if (!this.info) return -1
       return parentCategory[this.info.type] ?? this.info.type
     },
     style(): string {

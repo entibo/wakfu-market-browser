@@ -12,5 +12,6 @@
   "stack": "Lot",
   "price": "Prix",
   "seller": "Vendeur",
-  "timeLeft": "Temps"
+  "timeLeft": "Temps",
+  "unknown-item": "Object inconnu"
 }

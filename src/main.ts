@@ -16,6 +16,9 @@ import dayjs from "dayjs"
 import RelativeTime from "dayjs/plugin/relativeTime"
 dayjs.extend(RelativeTime)
 
+import worker from "@/worker/wrapper"
+const foo = worker
+
 new Vue({
   vuetify,
   i18n,

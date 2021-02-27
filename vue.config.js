@@ -1,3 +1,5 @@
+const WorkerPlugin = require("worker-plugin")
+
 module.exports = {
   transpileDependencies: ["vuetify"],
 
@@ -8,6 +10,13 @@ module.exports = {
       localeDir: "lang",
       enableInSFC: false,
     },
+  },
+
+  configureWebpack: {
+    module: {
+      /* rules: [{ test: /\.worker\.ts$/, use: ["worker-loader", "ts-loader"] }], */
+    },
+    plugins: [new WorkerPlugin()],
   },
 
   css: {

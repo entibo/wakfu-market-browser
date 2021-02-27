@@ -14,7 +14,7 @@ export const encyclopediaItemList: ItemInfo[] = Object.entries(_items).map(([key
 }))
 
 export const itemInfoMap = new Map(encyclopediaItemList.map((itemInfo) => [itemInfo.id, itemInfo]))
-;(window as any).itemInfoMap = itemInfoMap
+//;(window as any).itemInfoMap = itemInfoMap
 
 /* export function getItemInfo(itemID: number) {
   return items.get(itemID)

@@ -67,7 +67,7 @@ export default Vue.extend({
     },
   },
   data: () => ({
-    tab: 1,
+    tab: 0,
     showFilters: false,
     loading: true,
     error: false,

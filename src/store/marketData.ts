@@ -1,4 +1,5 @@
 import * as api from "@/api"
+import { itemInfoMap } from "@/data/items"
 import Vue from "vue"
 
 export interface MarketEntry extends api.MarketEntry {
@@ -12,13 +13,20 @@ const state = Vue.observable({
   top: [] as api.Top[],
 })
 
+let _sorted: any = null
+
 export const getters = {
   scans() {
     return state.scans
   },
   currentMarketEntries() {
-    ;(window as any).currentMarketEntries = state.currentMarketEntries
     return state.currentMarketEntries
+  },
+  foo() {
+    const sorted =
+      _sorted ??
+      (_sorted = [...state.currentMarketEntries].sort((a, b) => a.realPrice - b.realPrice))
+    return sorted.slice(0, 10)
   },
   currentMarketEntriesById() {
     console.log("computing currentMarketEntriesById")
@@ -46,11 +54,17 @@ export async function init() {
   state.scans = await api.fetchScans()
   const lastScan = state.scans[state.scans.length - 1]
   state.currentMarketEntries = Object.freeze(
-    (await api.fetchCurrent()).map((obj) => ({
-      ...obj,
-      scanID: lastScan.id,
-      scanTime: lastScan.time,
-    })),
+    (await api.fetchCurrent()).map((obj) =>
+      Object.freeze({
+        ...obj,
+        scanID: lastScan.id,
+        scanTime: lastScan.time,
+      }),
+    ),
+  )
+  console.log(
+    "can't get info:",
+    state.currentMarketEntries.filter((x) => !itemInfoMap.get(x.itemID)),
   )
   state.top = await api.fetchTop()
 }

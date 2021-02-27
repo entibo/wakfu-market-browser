@@ -132,13 +132,13 @@ export default Vue.extend({
           {
             show: true,
             min: 42000,
-            max: 46000,
+            max: 48000,
           },
           {
             opposite: true,
             show: true,
             min: 4200,
-            max: 4600,
+            max: 4800,
           },
         ],
         /* legend: {
